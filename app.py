@@ -55,7 +55,7 @@ def pingCheck():
     if query:
         try:
             # ping with query
-            result = subprocess.check_output(["timeout", "0.2", "ping", "-c", "1", query])
+            result = subprocess.check_output(["timeout", "2s", "ping", "-c", "1", query])
             return {
                 "success": True,
                 "message": "Ping successful",
@@ -65,12 +65,12 @@ def pingCheck():
             return {
                 "success": False,
                 "message": "Ping failed",
-                "data": ""
+                "data": []
             }
     return {
         "success": False,
         "message": "No query provided",
-        "data": ""
+        "data": []
     }
 
 @app.route("/dns")
@@ -79,7 +79,7 @@ def dnsCheck():
     if query:
         try:
             # ping with query
-            result = subprocess.check_output(["timeout", "2", "nslookup", query])
+            result = subprocess.check_output(["timeout", "2s", "nslookup", query])
             return {
                 "success": True,
                 "message": "DNS lookup successful",
@@ -99,7 +99,7 @@ def dnsCheck():
 
 @app.route("/routetable")
 def routeTable():
-    format = request.args.get("format", "tabular")
+    format = request.args.get("format")
     try:
         # ping with query
         if format == "tabular":
@@ -108,8 +108,8 @@ def routeTable():
             result = subprocess.check_output(["ip", "route", "show"])
         return {
             "success": True,
-            "message": "Route table fetched successfully",
-            "data": result.decode("utf-8").splitlines()
+            "message": "Routing table fetched",
+            "data": [x.replace(" ","&nbsp;") for x in result.decode("utf-8").splitlines()]
         }
     except Exception as e:
         return {
@@ -117,6 +117,23 @@ def routeTable():
             "message": "Failed to fetch route table",
             "data": ""
         }
+    
+@app.route("/network_interfaces")
+def networkInterfaces():
+    try:
+        # ping with query
+        result = subprocess.check_output(["ip", "addr", "show"])
+        return {
+            "success": True,
+            "message": "Network interfaces fetched",
+            "data": [x.replace(" ","&nbsp;") for x in result.decode("utf-8").splitlines()]
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": "Failed to fetch network interfaces",
+            "data": ""
+        }
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	app.run(debug=False, port=3000, host="0.0.0.0")

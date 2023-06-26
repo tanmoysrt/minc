@@ -2,40 +2,83 @@
 <html>
 
 <head>
-    <title>Test Environment</title>
+    <title>Container Test Image</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-<style>
-    table{
-        table-layout: fixed;
-    }
+    <style>
+        table {
+            table-layout: fixed;
+        }
 
-    table tbody tr td:nth-child(1), table thead th:nth-child(1){
-        width: 30%!important;
-    }
+        table tbody tr td:nth-child(1),
+        table thead th:nth-child(1) {
+            width: 30% !important;
+        }
 
-    table tbody tr td:nth-child(2), table thead th:nth-child(2){
-        width: 70%!important;
-    }
+        table tbody tr td:nth-child(2),
+        table thead th:nth-child(2) {
+            width: 70% !important;
+        }
 
-    table tbody tr td, table thead th{
-        word-wrap: break-word;
-    }
-    
-
-</style>
+        table tbody tr td,
+        table thead th {
+            word-wrap: break-word;
+        }
+    </style>
 </head>
 
 <body>
     <div class="p-4">
         <div class="row align-items-start">
             <div class="col-5">
-                <h1>Test Environment</h1>
+                <h3 class="mb-3">Available Tools</h3>
+                <!-- Open Remote Terminal -->
+                <div class="alert alert-primary d-flex flex-row justify-content-between align-items-center"
+                    role="alert">
+                    <p class="p-0 m-0 fs-5">Open Remote Terminal in new tab</p>
+                    <button type="button" class="btn btn-primary float-end" onclick="openRemoteTerminal()"><svg
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" style="height: 24px; width: 24px;">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                        </svg>&nbsp;&nbsp;Open Terminal
+                    </button>
+                </div>
+                <br>
+                <!-- Ping Test -->
+                <h4>Ping Test</h4>
+                <div class="input-group mt-2 mb-3">
+                    <input type="text" class="form-control" placeholder="Enter IP address" id="ping_check_input">
+                    <button class="btn btn-primary" type="button" id="ping_check_btn">Ping Check</button>
+                </div>
+                <p class="fw-semibold" id="ping_check_result_mini"></p>
+                <div class="alert" role="alert" id="ping_check_result" style="display: none;"></div>
+                <br>
+                <!-- DNS Test -->
+                <h4>DNS Test</h4>
+                <div class="input-group mt-2 mb-3">
+                    <input type="text" class="form-control" placeholder="Enter domain name" id="dns_check_input">
+                    <button class="btn btn-primary" type="button" id="dns_check_btn">Verify DNS</button>
+                </div>
+                <p class="fw-semibold" id="dns_check_result_mini"></p>
+                <div class="alert" role="alert" id="dns_check_result" style="display: none;"></div>
+                <br>
+                <!-- Route Table -->
+                <h4>Fetch Details</h4>
+                <div class="mt-2 mb-3">
+                    <button class="btn btn-primary" type="button" onclick="onClickFeatureDetails('routetable')">Routing Table</button>
+                    <button class="btn btn-primary" type="button" onclick="onClickFeatureDetails('routetable_tabular')">Routing Table [Tabular]</button>
+                    <button class="btn btn-primary" type="button" onclick="onClickFeatureDetails('network_interfaces')">Networking Interfaces</button>
+                </div>
+                <p class="fw-semibold" id="fetch_details_result_mini"></p>
+                <pre><div class="alert" role="alert" id="fetch_details_result" style="display: none;"></div></pre>
+                <br>
             </div>
+            <!-- Info and Stats -->
             <div class="col-7 h-100 overflow-y-auto">
-                <h3 class="mb-3">Check Detailed Information</h3>
+                <h3 class="mb-3">Info & Stats</h3>
                 <div class="accordion" id="accordionDetails">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
@@ -166,11 +209,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#collapseResourceStatsInfo" aria-expanded="false" aria-controls="collapseResourceStatsInfo">
+                                data-bs-target="#collapseResourceStatsInfo" aria-expanded="false"
+                                aria-controls="collapseResourceStatsInfo">
                                 Resource Usage
                             </button>
                         </h2>
-                        <div id="collapseResourceStatsInfo" class="accordion-collapse collapse" data-bs-parent="#accordionDetails">
+                        <div id="collapseResourceStatsInfo" class="accordion-collapse collapse"
+                            data-bs-parent="#accordionDetails">
                             <div class="accordion-body">
                                 <table class="table table-bordered border-primary">
                                     <thead>
@@ -186,15 +231,16 @@
                                         </tr>
                                         <tr>
                                             <td>CPU Usage</td>
-                                            <td>{{resource_info.current_cpu_freq}} / [{{resource_info.min_cpu_freq}} ~ {{resource_info.max_cpu_freq}}]</td>
+                                            <td>{{resource_info.current_cpu_freq}} / [{{resource_info.min_cpu_freq}} ~
+                                                {{resource_info.max_cpu_freq}}]</td>
                                         </tr>
                                         <tr>
                                             <td>Disk Usage</td>
                                             <td>
                                                 {% for disk in resource_info.disk_usage %}
-                                                    {% autoescape off %}
-                                                        {{disk}}<br>
-                                                    {% endautoescape%}
+                                                {% autoescape off %}
+                                                {{disk}}<br>
+                                                {% endautoescape%}
                                                 {% endfor %}
                                             </td>
                                         </tr>
@@ -242,6 +288,149 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
         crossorigin="anonymous"></script>
+    <script>
+        function openRemoteTerminal() {
+            let url = window.location.protocol + "//" + window.location.host.split(":")[0] + ":7681";
+            window.open(url, "_blank");
+        }
+
+        document.getElementById("ping_check_btn").addEventListener("click", function () {
+            resetStyleClass("alert", "ping_check_result");
+            const ping_check_result_element = document.getElementById("ping_check_result");
+            const ping_check_result_mini_element = document.getElementById("ping_check_result_mini");
+            // reset
+            ping_check_result_element.style.display = "none";
+            // Set looading
+            resetStyleClass("text", "ping_check_result_mini");
+            ping_check_result_mini_element.innerHTML = "Processing Request...";
+            ping_check_result_mini_element.classList.add("text-warning");
+            ping_check_result_mini_element.style.display = "block";
+
+            const query = document.getElementById("ping_check_input").value;
+            fetch(`/ping?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // set innerHTML
+                        ping_check_result_element.innerHTML = data.data.join("<br>");
+                        ping_check_result_mini_element.innerHTML = data.message;
+                        // reset classes
+                        resetStyleClass("alert", "ping_check_result");
+                        resetStyleClass("text", "ping_check_result_mini");
+                        // apply classes
+                        ping_check_result_mini_element.classList.add("text-success");
+                        ping_check_result_element.classList.add("alert-light");
+                        ping_check_result_element.style.display = "block";                        
+                    } else {
+                        ping_check_result_element.style.display = "none";
+                        ping_check_result_mini_element.innerHTML = data.message;
+                        ping_check_result_mini_element.classList.add("text-danger");
+                    }
+                })
+                .catch((error) => {
+                    ping_check_result_element.style.display = "none";
+                    ping_check_result_mini_element.innerHTML = error;
+                    ping_check_result_mini_element.classList.add("text-danger");
+                });
+        });
+
+
+        document.getElementById("dns_check_btn").addEventListener("click", function () {
+            resetStyleClass("alert", "dns_check_result");
+            const dns_check_result_element = document.getElementById("dns_check_result");
+            const dns_check_result_mini_element = document.getElementById("dns_check_result_mini");
+            // reset
+            dns_check_result_element.style.display = "none";
+            // Set looading
+            resetStyleClass("text", "dns_check_result_mini");
+            dns_check_result_mini_element.innerHTML = "Processing Request...";
+            dns_check_result_mini_element.classList.add("text-warning");
+            dns_check_result_mini_element.style.display = "block";
+
+            const query = document.getElementById("dns_check_input").value;
+            fetch(`/dns?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // set innerHTML
+                        dns_check_result_element.innerHTML = data.data.join("<br>");
+                        dns_check_result_mini_element.innerHTML = data.message;
+                        // reset classes
+                        resetStyleClass("alert", "dns_check_result");
+                        resetStyleClass("text", "dns_check_result_mini");
+                        // apply classes
+                        dns_check_result_mini_element.classList.add("text-success");
+                        dns_check_result_element.classList.add("alert-light");
+                        dns_check_result_element.style.display = "block";                        
+                    } else {
+                        dns_check_result_element.style.display = "none";
+                        dns_check_result_mini_element.innerHTML = data.message;
+                        dns_check_result_mini_element.classList.add("text-danger");
+                    }
+                })
+                .catch((error) => {
+                    dns_check_result_element.style.display = "none";
+                    dns_check_result_mini_element.innerHTML = error;
+                    dns_check_result_mini_element.classList.add("text-danger");
+                });
+        });
+
+        function resetStyleClass(base_class, id) {
+            const element = document.getElementById(id);
+            element.classList.remove(base_class+"-warning");
+            element.classList.remove(base_class+"-success");
+            element.classList.remove(base_class+"-danger");
+        }
+
+        function onClickFeatureDetails(commandType){
+            resetStyleClass("alert", "fetch_details_result");
+            const fetch_details_result_element = document.getElementById("fetch_details_result");
+            const fetch_details_result_mini_element = document.getElementById("fetch_details_result_mini");
+            // reset
+            fetch_details_result_element.style.display = "none";
+            // Set looading
+            resetStyleClass("text", "fetch_details_result_mini");
+            fetch_details_result_mini_element.innerHTML = "Processing Request...";
+            fetch_details_result_mini_element.classList.add("text-warning");
+            fetch_details_result_mini_element.style.display = "block";
+
+            // url
+            let url ="";
+            if(commandType === "routetable"){
+                url = "/routetable";
+            }else if(commandType === "routetable_tabular"){
+                url = "/routetable?format=tabular";
+            }else if(commandType === "network_interfaces"){
+                url = "/network_interfaces";
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // set innerHTML
+                        fetch_details_result_element.innerHTML = data.data.join("<br>");
+                        fetch_details_result_mini_element.innerHTML = data.message;
+                        // reset classes
+                        resetStyleClass("alert", "fetch_details_result");
+                        resetStyleClass("text", "fetch_details_result_mini");
+                        // apply classes
+                        fetch_details_result_mini_element.classList.add("text-success");
+                        fetch_details_result_element.classList.add("alert-light");
+                        fetch_details_result_element.style.display = "block";                        
+                    } else {
+                        fetch_details_result_element.style.display = "none";
+                        fetch_details_result_mini_element.innerHTML = data.message;
+                        fetch_details_result_mini_element.classList.add("text-danger");
+                    }
+                })
+                .catch((error) => {
+                    fetch_details_result_element.style.display = "none";
+                    fetch_details_result_mini_element.innerHTML = error;
+                    fetch_details_result_mini_element.classList.add("text-danger");
+                });
+        }
+    </script>
 </body>
 
 </html>
