@@ -27,6 +27,7 @@ def index():
 
     # Data to be sent to the template
     data = {
+        "fqdn": subprocess.check_output(["hostname", "-f"]).decode("utf-8"),
         "os_info": os.uname(),
         "request_info": {
             "type": request.method,
@@ -134,6 +135,15 @@ def networkInterfaces():
             "message": "Failed to fetch network interfaces",
             "data": ""
         }
+    
+@app.route("/fqdn")
+def fqdn():
+    try:
+        # ping with query
+        result = subprocess.check_output(["hostname", "-f"])
+        return result.decode("utf-8")
+    except Exception as e:
+        return "Failed to fetch FQDN"
 
 if __name__ == "__main__":
 	app.run(debug=False, port=3000, host="0.0.0.0")
