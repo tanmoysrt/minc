@@ -1,36 +1,29 @@
-FROM alpine:3.12.0
+# -- build stager --
+FROM python:3.10-alpine3.18 AS build
 
-# Install python
-RUN apk add linux-headers
-RUN apk add -y --update gcc python3 python3-dev py3-pip musl-dev libwebsockets-dev
-# Copy requirements.txt
-COPY requirements.txt /tmp/requirements.txt
-RUN pip3 --version
+# -- deps upgrades and installation --
+RUN apk add -y --update --no-cache gcc python3 python3-dev py3-pip musl-dev linux-headers
+RUN python3 -m ensurepip --upgrade && python3 -m pip install pex~=2.1.47
 
-# Install requirements
-RUN pip3 install -r /tmp/requirements.txt
-# Remove requirements.txt
-RUN rm /tmp/requirements.txt
-# Remove dependencies
-RUN apk del gcc python3-dev musl-dev py3-pip linux-headers
-# Remove cache
-RUN rm -rf /var/cache/apk/*
+# -- build pex from deps --
+RUN mkdir /source
+COPY requirements.txt /source/
+RUN pex -r /source/requirements.txt -o /source/pex_wrapper
 
+# -- release stager --
+FROM python:3.10-alpine3.18 AS final
+RUN apk upgrade --no-cache
 
-# Set working directory
+# -- copy from build stage --
 WORKDIR /app
-
-# Copy contents
 COPY . /app
+COPY --from=build /source /app/
 
-
-# EXPOSE port 3000 & 7681
+# -- app setup --
 EXPOSE 3000
 EXPOSE 7681
-
-# Executable ttyd.x86_64
 RUN chmod +x /app/ttyd.x86_64
 
-# ENTRYPOINT
-CMD [ "/bin/sh", "-c", "/app/ttyd.x86_64 -W -w ~ /bin/sh \
-            & python3 /app/app.py" ]
+# -- startup command --
+CMD [ "/bin/sh", "-c", "/app/ttyd.x86_64 -w ~ /bin/sh \
+            & /app/pex_wrapper /app/app.py" ]
