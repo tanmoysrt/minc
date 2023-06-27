@@ -2,7 +2,7 @@
 FROM python:3.10-alpine3.18 AS build
 
 # -- deps upgrades and installation --
-RUN apk add -y --update --no-cache gcc python3 python3-dev py3-pip musl-dev linux-headers
+RUN apk add --update --no-cache gcc python3 python3-dev py3-pip musl-dev linux-headers
 RUN python3 -m ensurepip --upgrade && python3 -m pip install pex~=2.1.47
 
 # -- build pex from deps --
